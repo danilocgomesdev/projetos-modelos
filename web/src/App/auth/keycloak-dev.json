@@ -1,0 +1,6 @@
+{
+  "realm": "zz-dev-lc",
+  "url": "https://oidc.fieg.com.br/auth",
+  "ssl-required": "external",
+  "clientId": "cr5-web-v2"
+}

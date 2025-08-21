@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cr5-web-v2
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: ""
+spec:
+  rules:
+    - host: teste.fieg.com.br
+      http:
+        paths:
+          - path: /cr5-web/v2
+            backend:
+              serviceName: cr5-web-v2-static
+              servicePort: 80

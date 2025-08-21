@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cr5-web-v2
+spec:
+  selector:
+    matchLabels:
+      app: cr5-web-v2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2 #numero maximo acima do numero de replicas
+      maxUnavailable: 0 #numero maximo indisponivel
+  template:
+    metadata:
+      labels:
+        app: cr5-web-v2
+      annotations:
+        config.linkerd.io/proxy-cpu-limit: "1.0"
+        config.linkerd.io/proxy-cpu-request: "0.15"
+        config.linkerd.io/proxy-memory-limit: 1024Mi"
+        config.linkerd.io/proxy-memory-request: 150Mi
+        linkerd.io/inject: enabled
+    spec:
+      securityContext:
+        fsGroup: 1001
+      volumes:
+      initContainers: []
+      containers:
+        - name: cr5-web-v2-static
+          image: cr5-web-v2-static
+          ports:
+            - containerPort: 80
+          imagePullPolicy: Always
+          volumeMounts: []
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 6Mi
+            limits:
+              cpu: 0.15
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /cr5-web/v2/
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /cr5-web/v2/
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 5

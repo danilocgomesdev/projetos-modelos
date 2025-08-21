@@ -1,0 +1,1 @@
+export { Impressoras } from "./Impressoras";

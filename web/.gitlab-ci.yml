@@ -1,0 +1,169 @@
+stages:
+  - package
+  - image
+  - deploy
+
+variables:
+  CONTAINER_IMAGE_REPO: ${REGISTRY_URL}/${CI_PROJECT_PATH}
+  CONTAINER_IMAGE: ${REGISTRY_URL}/${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+  CONTAINER_IMAGE_LATEST: ${REGISTRY_URL}/${CI_PROJECT_PATH}:latest
+  CONTAINER_IMAGE_REPO_STATIC: ${REGISTRY_URL}/${CI_PROJECT_PATH}-static
+  CONTAINER_IMAGE_STATIC: ${REGISTRY_URL}/${CI_PROJECT_PATH}-static:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+  CONTAINER_IMAGE_STATIC_LATEST: ${REGISTRY_URL}/${CI_PROJECT_PATH}-static:latest
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--quiet --batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -s settings.xml"
+  YARN_OPTS: " --cache-folder ${CI_PROJECT_DIR}/.yarn  --network-concurrency 1 --network-timeout=30000 --no-progress --non-interactive --silent --prefer-offline"
+  NODE_CACHE_KEY: NODE_${CI_PROJECT_NAME}
+  APP_DOMAIN_NAME: lan.fieg.com.br
+  APP_CONTEXT_PATH: cr5-web/v2
+  APP_NAME: cr5-web-v2
+  APP_JAR_NAME: cr5-web-v2.jar
+  APP_GROUP_NAME: financeiro
+  SETTINGS_FOLDER: cr5-web-v2
+
+#######################################################################################################################
+############## Tag templates
+#######################################################################################################################
+
+.run when master changes:
+  &default_template #acrescentar branch aqui irá executar stages image e deploy
+  tags:
+    - k8s-dev-runner
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "master" ||   $CI_COMMIT_BRANCH == $BRANCH
+  except:
+    - tags
+
+.run when a tag is created: &tag_template
+  tags:
+    - production
+  only:
+    - tags
+
+.deploy_when_branch_is_selected: &select_branch
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "master" ||  $CI_COMMIT_BRANCH == $BRANCH
+
+#######################################################################################################################
+############## frontend
+#######################################################################################################################
+
+.frontend build: &node_template
+  stage: package
+  image: registry.fieg.com.br/node:20-buster
+  script:
+    - unset CI
+    - echo '**/*.js' > .eslintignore
+    - yarn install ${YARN_OPTS}
+    - yarn build${BUILD_ENV}
+  artifacts:
+    paths:
+      - ./dist
+  cache:
+    key: "${NODE_CACHE_KEY}"
+    paths:
+      - ./node_modules
+      - ${CI_PROJECT_DIR}/node_modules
+      - ${CI_PROJECT_DIR}/.yarn
+
+frontend dev build:
+  <<: *node_template
+  <<: *default_template
+  variables:
+    BUILD_ENV: ":staging"
+  tags:
+    - k8s-dev-runner
+
+frontend tag build:
+  <<: *node_template
+  <<: *tag_template
+  tags:
+    - production
+
+#######################################################################################################################
+############## image
+#######################################################################################################################
+.release to docker: &docker_release
+  allow_failure: false
+  stage: image
+  image: registry.fieg.com.br/docker:18.09.7
+  services:
+    - name: docker:18.09.7-dind
+      entrypoint: ["sh", "-c", "dockerd-entrypoint.sh $DOCKER_DAEMON_OPTIONS"]
+  variables:
+    DOCKER_HOST: tcp://localhost:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DAEMON_OPTIONS: "--insecure-registry=${REGISTRY_URL}"
+  before_script:
+    - docker build --network host -t ${CONTAINER_IMAGE_STATIC} . -f ./geapp/src/main/docker/Dockerfile.frontend
+
+push master ref to registry:
+  <<: *default_template
+  <<: *docker_release
+  script:
+    - echo "Deploying ${CONTAINER_IMAGE_STATIC} "
+    - docker push ${CONTAINER_IMAGE_STATIC}
+  dependencies:
+    - frontend dev build
+  <<: *select_branch
+
+push production tag to registry:
+  <<: *docker_release
+  <<: *tag_template
+  script:
+    - echo "-----------------------------------------------"
+    - echo "Deploying ${CONTAINER_IMAGE_STATIC} to ${CONTAINER_IMAGE_STATIC_LATEST}"
+    - docker tag ${CONTAINER_IMAGE_STATIC} ${CONTAINER_IMAGE_STATIC_LATEST}
+    - docker push ${CONTAINER_IMAGE_STATIC_LATEST}
+    - echo "Deploying ${CONTAINER_IMAGE_STATIC} to ${CONTAINER_IMAGE_REPO_STATIC}:${CI_COMMIT_REF_NAME}"
+    - docker tag ${CONTAINER_IMAGE_STATIC} ${CONTAINER_IMAGE_REPO_STATIC}:${CI_COMMIT_REF_NAME}
+    - docker push ${CONTAINER_IMAGE_REPO_STATIC}:${CI_COMMIT_REF_NAME}
+  dependencies:
+    - frontend tag build
+
+#######################################################################################################################
+############## deploy
+#######################################################################################################################
+.deploy to kubernetes: &deploy_template
+  stage: deploy
+  image: registry.fieg.com.br/rafaelszp/kubectl:1.18.3k_02
+  before_script:
+    - "mkdir /etc/deploy -p"
+    - 'echo "$KUBECONFIG_B64" | base64 -d > $KUBECONFIG'
+    - echo "using ${CONTAINER_IMAGE}"
+  after_script:
+    - kustomize build ${KUSTOMIZE_DIR} > build.yaml
+    - kubectl apply -f build.yaml; [[ ! $? -eq 0 ]] && exit 137
+
+deploy to teste.fieg.com.br:
+  variables:
+    KUBECONFIG_B64: ${KUBECONFIG_DEV_B64}
+    KUSTOMIZE_DIR: ./geapp/src/main/kustomize/overlays/staging
+  <<: *default_template
+  <<: *deploy_template
+  script:
+    - cd ${KUSTOMIZE_DIR}
+    - kustomize edit set image ${APP_NAME}-static=${CONTAINER_IMAGE_STATIC}
+  dependencies:
+    - push master ref to registry
+  environment:
+    name: staging
+    url: https://teste.fieg.com.br/${APP_CONTEXT_PATH}
+  <<: *select_branch
+
+deploy to production:
+  variables:
+    KUBECONFIG_B64: ${KUBECONFIG_PRD_B64}
+    KUSTOMIZE_DIR: ./geapp/src/main/kustomize/overlays/production
+  <<: *tag_template
+  <<: *deploy_template
+  script:
+    - cd ${KUSTOMIZE_DIR}
+    - kustomize edit set image ${APP_NAME}-static=${CONTAINER_IMAGE_REPO_STATIC}:${CI_COMMIT_REF_NAME}
+  dependencies:
+    - push production tag to registry
+  environment:
+    name: production
+    url: https://${APP_DOMAIN_NAME}/${APP_CONTEXT_PATH}

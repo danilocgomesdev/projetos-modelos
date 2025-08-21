@@ -1,0 +1,8 @@
+  -XX:MaxRAM=384m
+  -Djava.net.preferIPv4Stack=true
+  -Djava.awt.headless=true
+  -javaagent:/app/glowroot/glowroot.jar
+  -Dglowroot.agent.id=financeiro-staging::cr5-web-v2-staging -Dglowroot.collector.address=http://PRDLNXAPL013.fieg.com.br:8181
+  -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+  -Dquarkus.profile=staging
+  -XX:+UseG1GC

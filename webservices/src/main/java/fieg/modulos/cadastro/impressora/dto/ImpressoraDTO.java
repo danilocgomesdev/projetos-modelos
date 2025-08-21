@@ -1,0 +1,21 @@
+package fieg.modulos.cadastro.impressora.dto;
+
+import jakarta.persistence.Column;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class ImpressoraDTO {
+
+    private Integer idImpressora;
+    private LocalDateTime dataCadastro;
+    private Integer idUnidade;
+    private String descricao;
+    private String modelo;
+    private String ipMaquina;
+    private Boolean gaveta;
+    private Boolean guilhotina;
+    private String tipoPorta;
+    private Integer porta;
+}

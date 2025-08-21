@@ -1,0 +1,1 @@
+export { DropBoxFormaPagamentoSimplificada } from "./DropBoxFormaPagamentoSimplificada";

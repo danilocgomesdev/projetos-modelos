@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -staging
+commonLabels:
+  variant: staging
+namespace: financeiro-staging
+commonAnnotations:
+  note: Ambiente de Stagging/DEV
+  base-url: https://teste.fieg.com.br
+  context-path: /cr5-web/v2
+resources:
+  - ../../base
+
+patches:
+  - path: deploy_patch.json
+    target:
+      kind: Deployment
+      labelSelector: app=cr5-web-v2
+
+
+patchesStrategicMerge:
+  - staging-ingress.yaml
+#  - staging-configMap.yaml
+#  - staging-deploy.yaml

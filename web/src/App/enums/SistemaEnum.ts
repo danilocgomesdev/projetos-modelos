@@ -1,0 +1,38 @@
+const SistemaEnum: Record<number, string> = {
+  5: "Agenda Web",
+  25: "Cadastro de Inadimplentes",
+  28: "SIGE",
+  40: "CR5",
+  43: "SIGE Inscrição Web",
+  46: "Educa",
+  48: "IELEventos",
+  50: "SIGE Inscrição Presencial",
+  101: "IEL Cursos",
+  119: "CRM",
+  120: "Olympia",
+  121: "STTNET",
+  125: "Educa Inscrição Presencial",
+  152: "Coliseu",
+  169: "Cobrança de Cursos EBEP",
+  179: "ICQ Cursos",
+  180: "ICQ Eventos",
+  181: "Cadastro Industrial",
+  196: "Sistema Integrados",
+  198: "Portal CIN",
+  199: "STTNET IEL",
+  200: "Dentalis",
+  212: "Faturamento de Serviços Médicos",
+  213: "SNE",
+  250: "Jovem Aprendiz",
+  251: "Nectar CRM",
+  252: "Integrador SMAIS",
+  253: "Konviva",
+  254: "SESI 4 Life",
+  255: "Portal Matrícula Escolas SESI",
+  256: "Clínica nas Nuvens",
+  285: "Pagamentos Externos",
+};
+
+export function getSistemaEnum(sistemaId: number) {
+  return SistemaEnum[sistemaId] || "";
+}

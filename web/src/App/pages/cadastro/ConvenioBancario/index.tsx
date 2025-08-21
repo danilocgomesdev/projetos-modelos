@@ -1,0 +1,1 @@
+export { ConvenioBancario } from "./ConvenioBancario";

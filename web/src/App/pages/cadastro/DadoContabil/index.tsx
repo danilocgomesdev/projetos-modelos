@@ -1,0 +1,1 @@
+export { DadoContabil } from "./DadoContabil";

@@ -1,0 +1,1 @@
+export { ExportaParaCadin } from "./ExportaParaCadin";

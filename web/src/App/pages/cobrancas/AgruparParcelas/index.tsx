@@ -1,0 +1,1 @@
+export { AgruparParcelas } from "./AgruparParcelas";

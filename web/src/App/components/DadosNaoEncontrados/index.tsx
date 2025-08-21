@@ -1,0 +1,1 @@
+export { DadosNaoEncontrados } from "./DadosNaoEncontrados";

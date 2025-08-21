@@ -1,0 +1,1 @@
+export { DropBoxIntegraProtheus } from "./DropBoxIntegraProtheus";

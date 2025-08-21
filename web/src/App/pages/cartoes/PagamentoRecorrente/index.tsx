@@ -1,0 +1,1 @@
+export { PagamentoRecorrente } from "./PagamentoRecorrente";

@@ -1,0 +1,39 @@
+[
+  {
+    "op": "replace",
+    "path": "/spec/replicas",
+    "value": 1
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-1",
+    "value": {
+      "name": "cr5-arquivos",
+      "emptyDir": {}
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-1",
+    "value": {
+      "mountPath": "/dados/cr5-arquivos",
+      "name": "cr5-arquivos"
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-1",
+    "value": {
+      "name": "cr5-cielo",
+      "emptyDir": {}
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-1",
+    "value": {
+      "mountPath": "/dados/cr5_cielo",
+      "name": "cr5-cielo"
+    }
+  }
+]

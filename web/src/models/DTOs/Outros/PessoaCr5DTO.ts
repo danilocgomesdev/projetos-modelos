@@ -1,0 +1,34 @@
+export interface PessoaCr5DTO {
+  idPessoa: number;
+  idTabela: number;
+  idSistema: number;
+  descricao: string;
+  cpfCnpj: string;
+  rg: string;
+  dataNascimento: Date;
+  logradouro: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  cep: string;
+  telefone: string;
+  telefone2: string;
+  email: string;
+  dataInclusao: string;
+  idOperadorInclusao: number;
+  dataAlteracao: string;
+  idOperadorAlteracao: number;
+  idRespFin: number;
+  pessoaFisica: boolean;
+  inscricaoEstadual: string;
+  emancipado: boolean;
+  celular: string;
+  celular2: string;
+  numeroResidencia: string;
+  idEstrangeiro: string;
+  pais: string;
+  estrangeiro: boolean;
+  codigoPais: number;
+  codigoPostal: string;
+}

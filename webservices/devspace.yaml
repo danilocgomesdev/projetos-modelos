@@ -1,0 +1,138 @@
+version: v2beta1
+name: cr5-webservices-v2
+localRegistry:
+  enabled: false
+
+vars:
+  NAMESPACE: "financeiro-dev"
+  DEPLOYMENT_NAME: "cr5-webservices-v2-dev"
+  CONTAINER_NAME: "${DEPLOYMENT_NAME}"
+  BACKEND_IMAGE_URL: "dev.fieg.com.br/devspace/${DEPLOYMENT_NAME}/backend"
+  DEV_IMAGE_URL: "registry.fieg.com.br/arquitetura-software/fieg-jdk:jdk-17" 
+  APPLICATION_PORT: 8080
+  CONTEXT_PATH: /cr5-webservices/v2
+  MAX_RAM: "1536Mi"
+  DEVSPACE_FLAGS:
+    value: "-n ${NAMESPACE}"
+
+# This is a list of `pipelines` that DevSpace can execute (you can define your own)
+pipelines:
+  # This is the pipeline for the main command: `devspace dev` (or `devspace run-pipeline dev`)
+  dev:
+    run: |-
+      run_dependencies --all       # 1. Deploy any projects this project needs (see "dependencies")
+      ensure_pull_secrets --all    # 2. Ensure pull secrets
+      create_deployments --all     # 3. Deploy Helm charts and manifests specfied as "deployments"
+      start_dev app                # 4. Start dev mode "app" (see "dev" section)
+  # You can run this pipeline via `devspace deploy` (or `devspace run-pipeline deploy`)
+  deploy:
+    run: |-
+      run_dependencies --all                            # 1. Deploy any projects this project needs (see "dependencies")
+      ensure_pull_secrets --all                         # 2. Ensure pull secrets
+      build_images --all -t "$(git describe --always)_$(date +%s)"    # 3. Build, tag (git commit hash) and push all images (see "images")
+      create_deployments --all                          # 4. Deploy Helm charts and manifests specfied as "deployments"
+
+# This is a list of `images` that DevSpace can build for this project
+# We recommend to skip image building during development (devspace dev) as much as possible
+images:
+  backend:
+    image: ${BACKEND_IMAGE_URL}
+    dockerfile: ./devspace/backend/Dockerfile
+    buildKit:
+      inCluster: {}
+      command: ["${DEVSPACE_USER_HOME}/.docker/docker-buildx"]
+
+# This is a list of `deployments` that DevSpace can create for this project
+deployments:
+  cr5-webservices-v2-dev:
+    # This deployment uses `helm` but you can also define `kubectl` deployments or kustomizations
+    helm:
+      # We are deploying this project with the Helm chart you provided
+      chart:
+        name: component-chart
+        repo: https://charts.devspace.sh
+      # Under `values` we can define the values for this Helm chart used during `helm install/upgrade`
+      # You may also use `valuesFiles` to load values from files, e.g. valuesFiles: ["values.yaml"]
+      values:
+        containers:
+          - image: ${BACKEND_IMAGE_URL}
+            imagePullPolicy: Always
+            name: backend
+            #command: ["sleep","60000"]
+            env:
+              - name: TZ
+                value: "America/Bahia"
+              - name: JAVA_OPTIONS
+                value: >-
+                  -Djava.net.preferIPv4Stack=true
+                  -Djava.awt.headless=true
+                  -XX:+UseG1GC
+                  -Duser.country=BR
+                  -Duser.language=pt
+                  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+              - name: GITLAB_TOKEN_GET_RAW
+                value: "fm6Yi_unrd9_kBNZ3J1G"
+              - name: MAVEN_CLI_OPTS
+                value: "--quiet --batch-mode --errors --fail-at-end --show-version -T 1C -DskipTests"
+            resources:
+              limits:
+                memory: ${MAX_RAM}
+                ephemeralStorage: 2Gi
+            service:
+                ports:
+                  - port: ${APPLICATION_PORT}
+                    containerPort: ${APPLICATION_PORT}
+
+        ingress:
+          tls: false
+          annotations:
+            kubernetes.io/ingress.class: nginx
+          rules:
+            - path: ${CONTEXT_PATH}
+              pathType: Prefix
+              serviceName: ${DEPLOYMENT_NAME}
+              servicePort: ${APPLICATION_PORT}
+        service:
+          name: "${DEPLOYMENT_NAME}"
+          ports:
+            - port: ${APPLICATION_PORT}
+            - port: 5005
+
+# This is a list of `dev` containers that are based on the containers created by your deployments
+dev: {}
+# Use the `commands` section to define repeatable dev workflows for this project 
+commands:
+  stop-dev:
+    description: "Purge all resources (deploy && dev)"
+    command: devspace purge -n ${NAMESPACE}
+  build-only:
+    description: "Build without deploy"
+    command: devspace build -t "devspace_$(git rev-parse HEAD)_$(date +%s)" -n ${NAMESPACE} --build-sequential
+  deploy-only:
+    description: "Deploy without build"
+    command: devspace deploy -n ${NAMESPACE} --skip-build -t "devspace_$(git rev-parse HEAD)_$(date +%s)" 
+  deploy-dev:
+    description: "Deploy to dev environment"
+    command: |-
+      echo $(devspace run stop-dev || echo '') && 
+      devspace run build-only &&
+      devspace run deploy-only
+  local:
+    description: "Deploy from local packages to dev environment"
+    command: |-
+      echo $(devspace run stop-dev || echo '') &&  
+      devspace build -p build-local -t "devspace_$(git rev-parse HEAD)_$(date +%s)" -n ${NAMESPACE} --build-sequential &&
+      devspace run deploy-only
+
+pullSecrets:
+  teste-fieg-com-br:
+    registry: dev.fieg.com.br
+    username: getin
+    password: getin
+
+profiles:
+- name: build-local
+  patches:
+  - op: replace
+    path: images.backend.dockerfile
+    value: ./devspace/backend/Dockerfile.local

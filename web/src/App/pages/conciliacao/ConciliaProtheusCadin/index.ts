@@ -1,0 +1,1 @@
+export { ConciliaProtheusCadin } from "./ConciliaProtheusCadin";

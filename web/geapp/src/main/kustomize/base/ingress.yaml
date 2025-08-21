@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cr5-web-v2
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: ""
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "cr5-web-v2-cookie"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "36001"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "36000"
+    nginx.ingress.kubernetes.io/session-cookie-change-on-failure: "true"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+spec:
+  rules:
+    - host: lan.fieg.com.br
+      http:
+        paths:
+          - path: /cr5-web/v2
+            backend:
+              serviceName: cr5-web-v2-static
+              servicePort: 80

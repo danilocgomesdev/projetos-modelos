@@ -1,0 +1,1 @@
+export { CancelamentoAutomatico } from "./CancelamentoAutomatico";

@@ -1,0 +1,30 @@
+export interface VisaoProdutoContabilDTO {
+  idProduto: number;
+  idSistema: number;
+  sistema: string;
+  produto: string;
+  preco: number;
+  status: string;
+  codProdutoProtheus: string | null;
+  idProdutoDadoContabil: number;
+  idDadoContabil: number;
+  contaContabil: string;
+  contaContabilDescricao: string;
+  itemContabil: string;
+  itemContabilDescricao: string;
+  natureza: string;
+  naturezaDescricao: string;
+  entidade: number | string;
+  nomeEntidade?: string;
+  dmed: string;
+  inativacaoProduto: number | null;
+  inativacaoDadoContabil: number | null;
+  inclusaoProduto: string | null;
+  alteracaoProduto: string | null;
+  inclusaoDadoContabil: string | null;
+  alteracaoDadoContabil: string | null;
+  operadorInclusaoProduto: number;
+  operadorAlteracaoProduto: number | null;
+  operadorInclusaoDadoContabil: number;
+  operadorAlteracaoDadoContabil: number | null;
+}

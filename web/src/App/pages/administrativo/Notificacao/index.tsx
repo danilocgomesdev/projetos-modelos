@@ -1,0 +1,1 @@
+export { Notificacao } from "./Notificacao";

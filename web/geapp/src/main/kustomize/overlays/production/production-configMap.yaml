@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cr5-web-v2-settings
+data:
+  application.properties: |
+    #Empty settings

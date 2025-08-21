@@ -1,0 +1,36 @@
+package fieg.modulos.boleto.dto.ConsultaBoletoCaixa;
+
+import fieg.externos.caixaboletoservice.consulta.dto.DescontoDTO;
+import fieg.externos.caixaboletoservice.consulta.dto.JurosMoraDTO;
+import fieg.externos.caixaboletoservice.consulta.dto.MultaDTO;
+import fieg.externos.caixaboletoservice.consulta.dto.PagadorDTO;
+import fieg.externos.caixaboletoservice.consulta.dto.PagamentoDTO;
+import fieg.externos.caixaboletoservice.consulta.dto.PosVencimentoDTO;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+@Getter
+@Setter
+public class TituloDTO {
+    private String numeroDocumento;
+    private String dataVencimento;
+    private String valor;
+    private String tipoEspecie;
+    private String flagAceite;
+    private String dataEmissao;
+    private JurosMoraDTO jurosMora;
+    private String valorAbatimento;
+    private PosVencimentoDTO posVencimento;
+    private String codigoMoeda;
+    private PagadorDTO pagador;
+    private MultaDTO multa;
+    private List<DescontoDTO> descontos;
+    private String valorIof;
+    private String identificacaoEmpresa;
+    private PagamentoDTO pagamento;
+    private String codigoBarras;
+    private String linhaDigitavel;
+    private String url;
+}

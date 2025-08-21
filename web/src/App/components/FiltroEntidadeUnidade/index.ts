@@ -1,0 +1,1 @@
+export { FiltroEntidadeUnidade } from "./FiltroEntidadeUnidade";

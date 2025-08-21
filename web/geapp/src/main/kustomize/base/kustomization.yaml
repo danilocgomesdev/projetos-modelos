@@ -1,0 +1,14 @@
+commonLabels:
+  app: cr5-web-v2
+  org: fieg
+  platform: javascript
+  framework: react-18
+  category: web-app
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - configmap.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: financeiro

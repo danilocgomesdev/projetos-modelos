@@ -1,0 +1,23 @@
+[
+  {
+    "op": "replace",
+    "path": "/spec/replicas",
+    "value": 2
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/tolerations",
+    "value": [
+      {
+        "key": "appGroup",
+        "value": "cr5",
+        "effect": "PreferNoSchedule"
+      },
+      {
+        "key": "appGroup",
+        "value": "cr5",
+        "effect": "NoSchedule"
+      }
+    ]
+  }
+]

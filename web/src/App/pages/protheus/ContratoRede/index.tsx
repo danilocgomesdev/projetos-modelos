@@ -1,0 +1,1 @@
+export { ContratoRede } from "./ContratoRede";

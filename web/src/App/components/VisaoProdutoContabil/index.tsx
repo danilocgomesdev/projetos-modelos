@@ -1,0 +1,1 @@
+export { ModalPesquisaVisaoProdutoContabil } from "./ModalPesquisaVisaoProdutoContabil";

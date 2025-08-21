@@ -1,0 +1,1 @@
+export { Gestores } from "./Gestor";

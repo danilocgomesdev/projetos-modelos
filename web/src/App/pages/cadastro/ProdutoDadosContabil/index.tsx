@@ -1,0 +1,1 @@
+export { ProdutoDadoContabil } from "./ProdutoDadoContabil";

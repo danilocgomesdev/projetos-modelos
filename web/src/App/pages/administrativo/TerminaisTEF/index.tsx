@@ -1,0 +1,2 @@
+
+export { TerminaisTEF } from "./TerminaisTEF";

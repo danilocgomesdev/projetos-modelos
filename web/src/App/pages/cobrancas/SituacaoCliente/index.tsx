@@ -1,0 +1,1 @@
+export { SituacaoCliente } from "./SituacaoCliente";

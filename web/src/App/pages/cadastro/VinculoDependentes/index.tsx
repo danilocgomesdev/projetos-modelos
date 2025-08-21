@@ -1,0 +1,1 @@
+export { VinculoDependente } from "./VinculoDependente";
