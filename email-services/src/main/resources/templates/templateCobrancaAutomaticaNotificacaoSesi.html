@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0;">
+    <meta name="format-detection" content="telephone=no"/>
+    <title>Notificação de Cobrança - Pós Vencimento</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-width: 100%;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #FFFFFF;
+            color: #2f4054;
+        }
+
+        img {
+            border: 0;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+        }
+
+        table {
+            border-collapse: collapse !important;
+            width: 100%;
+        }
+
+        a {
+            color: #FFFFFF;
+            text-decoration: none;
+        }
+
+        .contract-table {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .contract-item {
+            font-size: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .contract-table {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contract-item {
+                font-size: 12px;
+                grid-column: span 2;
+            }
+
+            .contract-item span {
+                font-weight: bold;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            body {
+                background-color: #FFFFFF;
+                color: #2f4054;
+            }
+
+            a {
+                background-color: #2B6CB0;
+                color: #FFFFFF;
+            }
+
+            .svg-light {
+                display: block;
+            }
+
+            .svg-dark {
+                display: none;
+            }
+
+            .borda-logo {
+                border-bottom: 10px solid #2f4054;
+                margin: 10px;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1A202C;
+                color: #CBD5E0;
+            }
+
+            a {
+                background-color: #4A5568;
+                color: #E2E8F0;
+            }
+
+            .svg-light {
+                display: none;
+            }
+
+            .svg-dark {
+                display: block;
+            }
+
+            .borda-logo {
+                border-bottom: 10px solid #999999;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center" valign="top">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; margin-top: 5%; padding: 1%;">
+                <tr>
+                    <td style="text-align: center; padding: 0;">
+                        <a href="https://sesigoias.com.br" target="_blank">
+                            <div style="max-width: 500px; height: auto; display: flex; justify-content: center; align-items: center; margin: auto;">
+                                <div class="svg-light">
+                                    <img src="https://www.fieg.com.br/portais/files/22e7933b-270e-4f36-84d9-1de057e8397d.png?contentDisposition=inline"
+                                         alt="SESI" width="90%"/>
+                                </div>
+                                <div class="svg-dark">
+                                    <img src="https://www.fieg.com.br/portais/files/603233fc-5355-4684-9f2c-ab1ea6dc5fb3.png?contentDisposition=inline"
+                                         alt="SESI" width="90%"/>
+                                </div>
+                            </div>
+                            <div class="borda-logo"></div>
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 20px; font-weight: bold; padding: 20px 0; text-align: center;">
+                        NOTIFICAÇÃO
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 17px; padding: 20px 5px;">
+                        Olá, {responsavelFinanceiro}.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 15px; padding: 20px 5px;">
+                        Seu título com vencimento para o dia 27/05/2024 está vencido. Para realizar o pagamento, acesse
+                        o SITE: www.fieg.com.br/pagamentos
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 13px; padding: 20px 5px;">
+                        <div class="contract-table">
+                            <div class="contract-item" style="grid-column: span 3;">
+                                <span>Responsável Financeiro:</span> {responsavelFinanceiro}
+                            </div>
+                            <div class="contract-item" style="grid-column: span 2;">
+                                <span>CPF/CNPJ:</span>{cpfCnpj}
+                            </div>
+                            {#if notaFiscal}
+                                <div class="contract-item">
+                                    <span>Nota Fiscal:</span> {notaFiscal}
+                                </div>
+                            {/if}
+                            <div class="contract-item">
+                                <span>Emitida em:</span> {dataInclusao}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="border: 1px solid #999999;">
+                    <td style="font-size: 12px; padding: 10px;">
+                        <div class="contract-table">
+                            <div class="contract-item" style="grid-column: span 3;">
+                                <span>Produto/Serviço:</span><span style="font-weight: bold;"> {produtoServico}</span>
+                            </div>
+                            <div class="contract-item">
+                                <span>Contrato:</span><span style="font-weight: bold;"> {numeroContrato}</span>
+                            </div>
+                            <div class="contract-item">
+                                <span>Cobrança:</span>{valorCobranca}
+                            </div>
+                            <div class="contract-item" style="grid-column: span 3;">
+                                <span>Unidade Gestora:</span> {unidade}
+                            </div>
+                            <div class="contract-item" style="grid-column: span 2;">
+                                <span>Vencido em:</span> {vencimento}
+                            </div>
+                            <div class="contract-item">
+                                <span>Data de Inclusão:</span> {dataInclusao}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 17px; text-align: center; padding: 40px 5px;">
+                        TOTAL DO BOLETO: {totalBoleto}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px; text-align: center; padding: 10px;">
+                        <span style="font-weight: bold;">Observação:</span> Destacamos que qualquer pendência financeira
+                        superior a 60 (sessenta) dias será incluída no SERASA e encaminhada para o Departamento Jurídico
+                        de Cobrança.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px; text-align: center; padding: 10px; padding-bottom: 20px; font-weight: bold;">
+                        Caso não possua nenhuma pendência, favor desconsiderar esta notificação e nos informar o motivo
+                        para evitar continuidade da cobrança e a negativação de seu CNPJ junto ao SERASA.
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center"
+                        style="font-size: 12px; line-height: 150%; padding: 20px ; color: #999999; border-top: 1px solid #999999;">
+                        <p>SERVIÇO SOCIAL DA INDÚSTRIA – SESI</p>
+                        <p>Av. Araguaia, nº 1.544 - Edifício Albano Franco | Casa da Indústria - Vila Nova - CEP
+                            74645-070 - Goiânia-GO</p>
+                        <p>Central de Atendimentos: Goiânia - 4002 6213 | Demais localidades - 0800 642 1313</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

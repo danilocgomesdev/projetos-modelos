@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-services
+spec:
+  type: ClusterIP
+  selector:
+    app: email-services
+  ports:
+    - protocol: TCP
+      port: 8080

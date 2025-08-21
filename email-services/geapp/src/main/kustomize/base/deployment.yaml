@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-services
+spec:
+  selector:
+    matchLabels:
+      app: email-services
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2 #numero maximo acima do numero de replicas
+      maxUnavailable: 0 #numero maximo indisponivel
+  template:
+    metadata:
+      labels:
+        app: email-services
+      annotations:
+        config.linkerd.io/proxy-cpu-limit: "0.05"
+        config.linkerd.io/proxy-cpu-request: "0.01"
+        config.linkerd.io/proxy-memory-limit: 32Mi"
+        config.linkerd.io/proxy-memory-request: 6Mi
+        linkerd.io/inject: enabled
+    spec:
+      securityContext:
+        fsGroup: 1001
+      volumes:
+        - name: email-services-settings
+          configMap:
+            name: email-services-settings
+            items:
+              - key: application.properties
+                path: application.properties
+      initContainers: []
+      containers:
+        - name: email-services
+          image: nginx:alpine
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: email-services-settings
+              mountPath: /deployments/config/application.properties
+              subPath: application.properties
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JAVA_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: email-services-settings
+                  key: java-settings
+            - name: TZ
+              value: "America/Bahia"
+            - name: DEPLOY_TIMESTAMP
+              value: "__xTIMESTAMPx__"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /email-services/q/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /email-services/q/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 5
