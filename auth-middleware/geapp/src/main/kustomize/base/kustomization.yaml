@@ -1,0 +1,14 @@
+commonLabels:
+  app: auth-middleware
+  org: fieg
+  platform: jdk-17
+  framework: quarkus-3
+  category: webservice
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - configmap.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: financeiro

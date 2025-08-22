@@ -1,0 +1,7 @@
+  -XX:MaxRAM=384m
+  -Djava.net.preferIPv4Stack=true
+  -Djava.awt.headless=true
+  -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+  -Dquarkus.profile=staging
+  -Duser.country=BR -Duser.language=pt
+  -XX:+UseG1GC

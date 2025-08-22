@@ -1,0 +1,176 @@
+stages:
+  - package
+  - image
+  - deploy
+
+variables:
+  APPLICATION_TAG: compartilhado/sms-services-v2
+  CONTAINER_IMAGE_REPO: ${REGISTRY_URL}/${APPLICATION_TAG}
+  CONTAINER_IMAGE: ${REGISTRY_URL}/${APPLICATION_TAG}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+  CONTAINER_IMAGE_LATEST: ${REGISTRY_URL}/${APPLICATION_TAG}:latest
+  CONTAINER_IMAGE_REPO_STATIC: ${REGISTRY_URL}/${APPLICATION_TAG}-static
+  CONTAINER_IMAGE_STATIC: ${REGISTRY_URL}/${APPLICATION_TAG}-static:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+  CONTAINER_IMAGE_STATIC_LATEST: ${REGISTRY_URL}/${APPLICATION_TAG}-static:latest
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--quiet --batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -s settings.xml"
+  YARN_OPTS: " --cache-folder ${CI_PROJECT_DIR}/.yarn  --network-concurrency 1 --network-timeout=30000 --no-progress --non-interactive --silent --prefer-offline"
+  NODE_CACHE_KEY: NODE_${CI_PROJECT_NAME}
+  APP_NAME: sms-services-v2
+  APP_DOMAIN_NAME: lan.fieg.com.br 
+  APP_CONTEXT_PATH: /sms-services
+  APP_JAR_NAME: sms-services.jar
+  APP_GROUP_NAME: compartilhado
+  SETTINGS_FOLDER: sms-services
+
+######################################################################################################################## TEMPLATES
+.run when master changes: &default_template
+  tags:
+    - k8s-dev-runner
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "desenvolvimento" ||  $CI_COMMIT_BRANCH == $BRANCH
+  except:
+    - tags
+
+.run when a tag is created: &tag_template
+  tags:
+    - production
+  only:
+    - tags
+
+########################################################################################################################
+#### Maven
+########################################################################################################################
+.maven build: &maven_template
+  stage: package
+  image: registry.fieg.com.br/maven/3.8.4-openjdk-17
+  script:
+    - 'curl -k --header "PRIVATE-TOKEN: $GITLAB_TOKEN_GET_RAW" "https://git.fieg.com.br/api/v4/projects/templates%2Fmaven-settings/repository/files/settings.xml/raw?ref=master" -o ./settings.xml'
+    - mvn $MAVEN_CLI_OPTS clean package -DskipTests ${MAVEN_PROFILE}
+  artifacts:
+    expire_in: 2h
+    paths:
+      - ./target/${APP_JAR_NAME}
+      - ./target/quarkus-app
+  cache:
+    key: "MAVEN_${CI_PROJECT_NAME}"
+    paths:
+      - .m2/repository
+
+maven master or desenvolvimento build:
+  <<: *maven_template
+  <<: *default_template
+  variables:
+    MAVEN_PROFILE: "-Pgeapp -DskipTests -Dquarkus.package.type=fast-jar -Dquarkus.profile=staging"
+
+maven production tag build:
+  <<: *maven_template
+  <<: *tag_template
+  variables:
+    MAVEN_PROFILE: "-Pgeapp -DskipTests -Dquarkus.package.type=fast-jar"
+  before_script:
+    - rm ./src/main/resources/application.properties -f
+    - 'curl -k --header "PRIVATE-TOKEN: $GITLAB_TOKEN_GET_RAW" "https://git.fieg.com.br/api/v4/projects/165/repository/files/${SETTINGS_FOLDER}%2Fapplication.properties/raw?ref=master" -o ./src/main/resources/application.properties'
+  only:
+    - tags
+
+######################################################################################################################## IMAGE
+
+.release to docker: &docker_release
+  allow_failure: false
+  stage: image
+  image: registry.fieg.com.br/docker:18.09.7
+  services:
+    - name: docker:18.09.7-dind
+      entrypoint: [ "sh", "-c", "dockerd-entrypoint.sh $DOCKER_DAEMON_OPTIONS" ]
+  variables:
+    DOCKER_HOST: tcp://localhost:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DAEMON_OPTIONS: "--insecure-registry=${REGISTRY_URL}"
+  before_script:
+    - docker build --network host -t ${CONTAINER_IMAGE} . -f ./geapp/src/main/docker/Dockerfile.fast-jar
+
+push master ref to registry:
+  <<: *default_template
+  <<: *docker_release
+  script:
+    - echo "Deploying ${CONTAINER_IMAGE} "
+    - docker push ${CONTAINER_IMAGE}
+  dependencies:
+    - maven master or desenvolvimento build
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "master" ||  $CI_COMMIT_BRANCH == $BRANCH
+
+
+push production tag to registry:
+  <<: *docker_release
+  <<: *tag_template
+  script:
+    - echo "Deploying ${CONTAINER_IMAGE} to ${CONTAINER_IMAGE_LATEST}"
+    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_LATEST}
+    - docker push ${CONTAINER_IMAGE_LATEST}
+    - echo "Deploying ${CONTAINER_IMAGE} to ${CONTAINER_IMAGE_REPO}:${CI_COMMIT_REF_NAME}"
+    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_REPO}:${CI_COMMIT_REF_NAME}
+    - docker push ${CONTAINER_IMAGE_REPO}:${CI_COMMIT_REF_NAME}
+  dependencies:
+    - maven production tag build
+
+
+######################################################################################################################## DEPLOY
+
+.deploy to kubernetes: &deploy_template
+  stage: deploy
+  image: registry.fieg.com.br/rafaelszp/kubectl:1.18.3k_02
+  before_script:
+    - 'mkdir /etc/deploy -p'
+    - 'echo "$KUBECONFIG_B64" | base64 -d > $KUBECONFIG'
+    - echo "using ${CONTAINER_IMAGE}"
+  after_script:
+    - sed -i "s/__xTIMESTAMPx__/$(date +%Y-%m-%d_%H.%M.%S)/g" $CI_PROJECT_DIR/geapp/src/main/kustomize/base/deployment.yaml
+    - kustomize build ${KUSTOMIZE_DIR} > build.yaml
+    - kubectl apply -f build.yaml | tee build.log
+    - | 
+      set +e
+      awk '{resp = tolower($0)} resp ~ /error|invalid/ {erro=137} END {exit erro}' build.log; exit $?
+      set -e
+
+deploy to teste.fieg.com.br:
+  variables:
+    KUBECONFIG_B64: ${KUBECONFIG_DEV_B64}
+    KUSTOMIZE_DIR: ./geapp/src/main/kustomize/overlays/staging
+  <<: *default_template
+  <<: *deploy_template
+  script:
+    - export JVM_SETTINGS=$(cat ${KUSTOMIZE_DIR}/jvm.settings | tr -d '\n')
+    - kubectl create configmap ${APP_NAME}-settings --from-file=application.properties=./src/main/resources/application.properties -o yaml --dry-run --from-literal=java-settings="${JVM_SETTINGS}" > ${KUSTOMIZE_DIR}/staging-configMap.yaml
+    - cd ${KUSTOMIZE_DIR}
+    - kustomize edit set image nginx:alpine=${CONTAINER_IMAGE}
+  dependencies:
+    - push master ref to registry
+  environment:
+    name: staging
+    url: https://teste.fieg.com.br/sms-services
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "master" ||  $CI_COMMIT_BRANCH == $BRANCH
+
+
+deploy to production:
+  variables:
+    KUBECONFIG_B64: ${KUBECONFIG_PRD_B64}
+    KUSTOMIZE_DIR: ./geapp/src/main/kustomize/overlays/production
+  <<: *tag_template
+  <<: *deploy_template
+  script:
+    - export JVM_SETTINGS=$(cat ${KUSTOMIZE_DIR}/jvm.settings | tr -d '\n')
+    - 'curl -k --header "PRIVATE-TOKEN: $GITLAB_TOKEN_GET_RAW" "https://git.fieg.com.br/api/v4/projects/165/repository/files/${SETTINGS_FOLDER}%2Fapplication.properties/raw?ref=master" -o ./application.properties'
+    - kubectl create configmap ${APP_NAME}-settings --from-file=application.properties=./application.properties -o yaml --dry-run --from-literal=java-settings="${JVM_SETTINGS}" > ${KUSTOMIZE_DIR}/production-configMap.yaml
+    - stat ${KUSTOMIZE_DIR}/production-configMap.yaml
+    - cd ${KUSTOMIZE_DIR}
+    - kustomize edit set image nginx:alpine=${CONTAINER_IMAGE_REPO}:${CI_COMMIT_REF_NAME}
+  dependencies:
+    - push production tag to registry
+  environment:
+    name: production
+    url: https://${APP_DOMAIN_NAME}/${APP_CONTEXT_PATH}

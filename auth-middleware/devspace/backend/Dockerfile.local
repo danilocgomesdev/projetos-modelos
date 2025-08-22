@@ -1,0 +1,18 @@
+####################################################################################################
+# Runner
+####################################################################################################
+FROM registry.fieg.com.br/arquitetura-software/fieg-jdk:jdk-17 as production
+USER root
+
+# Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
+ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+COPY ./target/quarkus-app /deployments/
+COPY ./src/main/resources/application.properties /deployments/config/application.properties
+
+
+EXPOSE 8080
+EXPOSE 5005
+USER 1001
+
+ENTRYPOINT [ "/deployments/run-java.sh" ]

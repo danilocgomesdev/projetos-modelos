@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sms-services-v2
+spec:
+  selector:
+    matchLabels:
+      app: sms-services-v2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2 #numero maximo acima do numero de replicas
+      maxUnavailable: 0 #numero maximo indisponivel
+  template:
+    metadata:
+      labels:
+        app: sms-services-v2
+      annotations:
+        config.linkerd.io/proxy-cpu-limit: "1.5"
+        config.linkerd.io/proxy-cpu-request: "0.05"
+        config.linkerd.io/proxy-memory-limit: 512Mi"
+        config.linkerd.io/proxy-memory-request: 256Mi
+        linkerd.io/inject: enabled
+    spec:
+      securityContext:
+        fsGroup: 1001
+      volumes:
+        - name: sms-services-v2-settings
+          configMap:
+            name: sms-services-v2-settings
+            items:
+              - key: application.properties
+                path: application.properties
+      initContainers: []
+      containers:
+        - name: sms-services-v2
+          image: nginx:alpine
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: sms-services-v2-settings
+              mountPath: /deployments/config/application.properties
+              subPath: application.properties
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JAVA_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: sms-services-v2-settings
+                  key: java-settings
+            - name: MEMORY
+              value: "512m"
+            - name: CPUS
+              value: "1"
+            - name: TZ
+              value: "America/Bahia"
+            - name: DEPLOY_TIMESTAMP
+              value: "__xTIMESTAMPx__"
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /sms-services/q/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /sms-services/q/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 5

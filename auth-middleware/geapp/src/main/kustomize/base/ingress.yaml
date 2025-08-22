@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: auth-middleware
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: ""
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/connection-proxy-header: ""
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      chunked_transfer_encoding off;
+      proxy_cache off;
+      if ($http_origin ~* "^https?://(fieg.com.br|www.fieg.com.br|sesigoias.com.br|sesigoias.com.br|ielgoias.com.br)$") {
+        add_header Access-Control-Allow-Origin "$http_origin";
+      }
+
+spec:
+  rules:
+    - host: lan.fieg.com.br
+      http:
+        paths:
+          - path: /auth-middleware
+            backend:
+              serviceName: auth-middleware
+              servicePort: 8080

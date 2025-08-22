@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sms-services-v2
+spec:
+  type: ClusterIP
+  selector:
+    app: sms-services-v2
+  ports:
+    - protocol: TCP
+      port: 8080

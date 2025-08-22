@@ -1,0 +1,9 @@
+  -XX:MaxRAM=512m
+  -Djava.net.preferIPv4Stack=true
+  -Djava.awt.headless=true
+  -javaagent:/app/glowroot/glowroot.jar
+  -Dglowroot.agent.id=compartilhado::sms-services-v2 -Dglowroot.collector.address=http://10.21.152.139:8181
+  -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+  -Dquarkus.profile=prod
+  -Duser.country=BR -Duser.language=pt
+  -XX:+UseG1GC

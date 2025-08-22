@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caixa-boleto-services-settings
+data:
+  application.properties: |
+    #Empty settings

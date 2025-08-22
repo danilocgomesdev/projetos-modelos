@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -staging
+commonLabels:
+  variant: staging
+namespace: financeiro-staging
+commonAnnotations:
+  note: Ambiente de Stagging/DEV
+  url: https://teste.fieg.com.br/auth-middleware
+resources:
+  - ../../base
+
+
+
+patches:
+  - path: deploy_patch.json
+    target:
+      kind: Deployment
+      labelSelector: app=auth-middleware
+
+  - path: ingress_patch.json
+    target:
+      kind: Ingress
+      labelSelector: app=auth-middleware
+
+
+patchesStrategicMerge:
+  - staging-configMap.yaml

@@ -1,0 +1,12 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: caixa-boleto-services
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: caixa-boleto-services
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 100000000

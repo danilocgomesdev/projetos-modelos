@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  variant: production
+namespace: financeiro
+commonAnnotations:
+  note: Ambiente de Produção
+  url: https://lan.com.br/auth-middleware
+resources:
+  - ../../base
+
+patches:
+  - path: deploy_patch.json
+    target:
+      kind: Deployment
+      labelSelector: app=auth-middleware
+
+patchesStrategicMerge:
+  - production-configMap.yaml
+

@@ -1,0 +1,24 @@
+<soapenv:Envelope
+        xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:consultacobrancabancaria="http://caixa.gov.br/sibar/consulta_cobranca_bancaria/boleto"
+        xmlns:sibar_base="http://caixa.gov.br/sibar">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <consultacobrancabancaria:SERVICO_ENTRADA>
+            <sibar_base:HEADER>
+                <VERSAO>{header.versao}</VERSAO>
+                <AUTENTICACAO>{header.autenticacao}</AUTENTICACAO>
+                <USUARIO_SERVICO>{header.usuarioServico}</USUARIO_SERVICO>
+                <OPERACAO>CONSULTA_BOLETO</OPERACAO>
+                <SISTEMA_ORIGEM>{header.sistemaOrigem}</SISTEMA_ORIGEM>
+                <DATA_HORA>{header.dataHora}</DATA_HORA>
+            </sibar_base:HEADER>
+            <DADOS>
+                <CONSULTA_BOLETO>
+                    <CODIGO_BENEFICIARIO>{codigoBeneficiario}</CODIGO_BENEFICIARIO>
+                    <NOSSO_NUMERO>{nossoNumero}</NOSSO_NUMERO>
+                </CONSULTA_BOLETO>
+            </DADOS>
+        </consultacobrancabancaria:SERVICO_ENTRADA>
+    </soapenv:Body>
+</soapenv:Envelope>

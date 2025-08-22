@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-middleware
+spec:
+  selector:
+    matchLabels:
+      app: auth-middleware
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2 #numero maximo acima do numero de replicas
+      maxUnavailable: 0 #numero maximo indisponivel
+  template:
+    metadata:
+      labels:
+        app: auth-middleware
+      annotations:
+        config.linkerd.io/proxy-cpu-limit: "0.1"
+        config.linkerd.io/proxy-cpu-request: "0.05"
+        config.linkerd.io/proxy-memory-limit: 64Mi"
+        config.linkerd.io/proxy-memory-request: 64Mi
+        linkerd.io/inject: enabled
+    spec:
+      securityContext:
+        fsGroup: 1001
+      volumes:
+        - name: auth-middleware-settings
+          configMap:
+            name: auth-middleware-settings
+            items:
+              - key: application.properties
+                path: application.properties
+      initContainers: []
+      containers:
+        - name: auth-middleware
+          image: nginx:alpine
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: auth-middleware-settings
+              mountPath: /deployments/config/application.properties
+              subPath: application.properties
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JAVA_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-middleware-settings
+                  key: java-settings
+            - name: TZ
+              value: "America/Bahia"
+            - name: DEPLOY_TIMESTAMP
+              value: "__xTIMESTAMPx__"
+            - name: QUARKUS_APPLICATION_VERSION
+              value: "__xPOM_VERSIONx__"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /auth-middleware/q/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /auth-middleware/q/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 5
