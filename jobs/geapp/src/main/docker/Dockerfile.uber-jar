@@ -1,0 +1,27 @@
+FROM registry.fieg.com.br/alpine/git:v2.30.1 AS prebuild
+RUN apk update && apk add curl
+RUN mkdir -p /app \
+    && curl "https://static.fieg.com.br/getin/tools/tools/glowroot-0.14.0-beta.2-dist.zip" -k -o /app/glowroot.zip --connect-timeout 60 \
+    && unzip /app/glowroot.zip -d /app/ \
+    && chown 1001:1001 /app -R
+
+
+FROM registry.fieg.com.br/arquitetura-software/fieg-jdk:jdk-17
+
+USER root
+
+COPY --from=prebuild --chown=1001  /app/glowroot/glowroot.jar /app/glowroot/glowroot.jar
+RUN chown 1001:1001 /app -R
+
+# Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
+ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+COPY --chown=1001 target/*.jar /deployments/
+RUN mkdir /deployments/scripts
+COPY --chown=1001 geapp/src/main/resources/*.sh /deployments/scripts/
+RUN chmod +x /deployments/scripts/*.sh -v
+
+EXPOSE 8080
+USER 1001
+
+ENTRYPOINT [ "/deployments/run-java.sh" ]

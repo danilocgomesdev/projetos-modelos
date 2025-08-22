@@ -1,0 +1,6 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cr5-jobs-baixa-parcela-cielo
+spec:
+  suspend: true

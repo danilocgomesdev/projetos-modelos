@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -staging
+commonLabels:
+  variant: staging
+namespace: financeiro-staging
+commonAnnotations:
+  note: Ambiente de Stagging/DEV
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - staging-cronjob-baixaParcelaCielo.yaml
+  - staging-cronjob-conciliacao.yaml
+  - staging-cronjob-cancelamento.yaml
+  - staging-cronjob-baixaPix.yaml
+  - staging-cronjob-inclusaoParcelaCielo.yaml
+  - staging-cronjob-inclusaoParcelaCieloExcecao.yaml
+  - staging-cronjob-agruparCobrancasEnviarEmails.yaml
+  - staging-cronjob-integraProtheus.yaml
+  - staging-cronjob-emailCobrancaAutomaticaGestor.yaml
+  - staging-cronjob-pesquisaRecorrenciaJobSesi.yaml
+  - staging-cronjob-inserirCobPagtoEForma.yaml

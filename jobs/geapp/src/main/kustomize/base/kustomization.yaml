@@ -1,0 +1,19 @@
+commonLabels:
+  app: cr5-jobs
+  org: fieg
+resources:
+  - cronjob-conciliacao.yaml
+  - cronjob-integraProtheus.yaml
+  - configmap.yaml
+  - cronjob-cancelamento.yaml
+  - cronjob-baixaPix.yaml
+  - cronjob-baixaParcelaCielo.yaml
+  - cronjob-inclusaoParcelaCielo.yaml
+  - cronjob-inclusaoParcelaCieloExcecao.yaml
+  - cronjob-agruparCobrancasEnviarEmails.yaml
+  - cronjob-emailCobrancaAutomaticaGestor.yaml
+  - cronjob-pesquisaRecorrenciaJobSesi.yaml
+  - cronjob-inserirCobPagtoEForma.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: financeiro

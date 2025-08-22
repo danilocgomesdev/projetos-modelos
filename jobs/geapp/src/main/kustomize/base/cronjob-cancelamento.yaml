@@ -1,0 +1,51 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cr5-jobs-cancelamento
+spec:
+  schedule: "0 7-13 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          volumes: 
+            - name: cr5-jobs-settings
+              configMap:
+                name: cr5-jobs-settings
+                items:
+                  - key: application.properties
+                    path: application.properties
+                  - key: credenciais.json
+                    path: credenciais.json
+          containers:
+          - name: cr5-jobs-cancelamento
+            image: busybox
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - name: cr5-jobs-settings
+                mountPath: /deployments/config/application.properties
+                subPath: application.properties
+              - name: cr5-jobs-settings
+                mountPath: /dados/config/credenciais.json
+                subPath: credenciais.json
+            resources:
+              requests:
+                cpu: 250m
+                memory: 256Mi
+              limits:
+                cpu: 2000m
+                memory: 1536Mi
+            env: 
+            - name: TZ
+              value: "America/Bahia"
+            - name: LANGUAGE
+              value: "en_US:en"
+            - name: LC_ALL
+              value: "en_US.UTF-8"
+            - name: LANG
+              value: "en_US.UTF-8"
+            command: 
+              - /bin/sh
+              - '-c'
+              - '/deployments/scripts/cancelamento.sh'
+          restartPolicy: OnFailure

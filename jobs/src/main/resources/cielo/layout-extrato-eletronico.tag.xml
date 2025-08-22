@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<txg:Texgit xmlns:txg="http://jrimum.org/texgit"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://gilmatryx.googlepages.com/Texgit http://jrimum.org/texgit"
+            version="1.0-academic">
+
+    <FlatFile>
+        <layout>
+            <name>Arquivo-Retorno_BradescoCNAB400</name>
+            <description>
+                Layout para cobrança.
+
+                Arquivo texto - padrão CNAB
+                Meio de Registro Transmissão de Dados 
+                Descrição de Registro - Tamanho 400 Bytes
+                Organização Sequencial
+
+                ARQUIVO FORMATO CNAB RETORNO, REGISTROS:
+				 
+                0 - Header Label
+                1 - Cobrança - Transação 
+                3 - Rateio de Crédito (opcional)
+                9 - Trailler (Papel de finalizador de lote e totalizador)
+            </description>
+        </layout>
+        <GroupOfRecords>
+            <!--HEADER-->
+            <Record name="Header" description="Protocolo de comunicação">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="0" length="1" position="1" />
+                    <Field name="EstabelecimentoMatriz" length="10" />
+                    <Field name="DataProcessamento" length="8" />
+                    <Field name="PeriodoInicial" length="8" />
+                    <Field name="PeriodoFinal" length="8" />
+                    <Field name="Sequencia" length="7" />
+                    <Field name="EmpresaAdquirente" value="Cielo" length="5" />
+                    <Field name="OpcaoExtrato" length="2" />
+                    <Field name="Van" length="1" />
+                    <Field name="CaixaPostal" length="20" />                    
+                    <Field name="VersaoLayout" value="001" length="3" />
+                    <Field name="UsoCielo" length="177" />
+                </GroupOfFields>
+            </Record>
+            
+            <!-- Resumo da Operação -->
+            <Record name="DetalheResumoOperacao" repeatable="true">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="1" length="1" position="1" />
+                    <Field name="EstabelecimentoSubmissor" length="10" />
+                    <Field name="NumeroResumoOperacao" length="7" />
+                    <Field name="NumeroParcela" length="2" />
+                    <Field name="Filler" length="1" />
+                    <Field name="Plano" length="2" />
+                    <Field name="TipoTransacao" length="2" />
+                    <Field name="DataDeApresentacao" length="6" />
+                    <Field name="DataPrevistaPagamento" length="6" />                    
+                    <Field name="DataEnvioBanco" length="6" />
+                    <Field name="SinalValorBruto" length="1" />
+                    <Field name="ValorBruto" length="13" />
+                    <Field name="SinalDaComissao" length="1" />
+                    <Field name="ValorDaComissao" length="13" />
+                    <Field name="SinalDoValorRejeitado" length="1" />
+                    <Field name="ValorRejeitado" length="13" />
+                    <Field name="SinalValorLiquido" length="1" />
+                    <Field name="ValorLiquido" length="13" />                    
+                    <Field name="CodigoBanco" length="4" />
+                    <Field name="CodigoAgencia" length="5" />
+                    <Field name="CodigoContaCorrente" length="14" />
+                    <Field name="StatusDoPagamento" length="2" />
+                    <Field name="QtdeVendasAceitasRO" length="6" />
+                    <Field name="CodigoDoProdutoOld" length="2" />
+                    <Field name="QtdeVendasRejeitadasRO" length="6" />                    
+                    <Field name="TipoManutencaoTransacao" length="1" />
+                    <Field name="DataDaCapturaTransacao" length="6" />
+                    <Field name="TipoAjuste" length="2" />
+                    <Field name="ValorComplementar" length="13" />                    
+                    <Field name="AntecipacaoRO" length="1" />
+                    <Field name="NumeroAntecipacaoRO" length="9" />
+                    <Field name="SinalValorBrutoAntecipado" length="1" />                    
+                    <Field name="ValorBrutoAntecipado" length="13" />
+                    <Field name="Bandeira" length="3" />                    
+                    <Field name="NumeroUnicoRO" length="22" />
+                    <Field name="TaxaDeComissao" length="4" />
+                    <Field name="TarifaTransacao" length="5" />                    
+                    <Field name="TaxaGarantia" length="4" />
+                    <Field name="MeioCaptura" length="2" />                        
+                    <Field name="NumeroTerminal" length="8" />
+                    <Field name="CodigoDoProduto" length="3" />                    
+                    <Field name="MatrizDePagamento" length="10" />
+                    <Field name="UsoCielo" length="5" />                        
+                </GroupOfFields>
+            </Record>
+            
+            <!--COMPROVANTE DE VENDA-->
+            <Record name="ComprovanteVenda" repeatable="true">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="2" length="1" position="1" />
+                    <Field name="EstabelecimentoSubmissor" length="10" />
+                    <Field name="NumeroResumoOperacao" length="7" />
+                    <Field name="NumeroCartao" length="19" />
+                    <Field name="DataVenda" length="8" />
+                    <Field name="TipoOperacao" length="1" />
+                    <Field name="ValorVenda" value="Cielo" length="13" />
+                    <Field name="NumeroParcela" length="2" />
+                    <Field name="QtdeParcelas" length="2" />
+                    <Field name="MotivoRejeicao" length="3" />                    
+                    <Field name="CodigoAutorizacao" value="001" length="6" />
+                    <Field name="Tid" length="20" />
+                    <Field name="NumeroNSU" length="6" />
+                    <Field name="ValorComplementar" length="13" />                    
+                    <Field name="QtdeDigitosCartao" value="001" length="2" />
+                    <Field name="ValorTotalVenda" length="13" />
+                    <Field name="ValorProximaParcela" length="13" />
+                    <Field name="NumeroNotaFiscalPOS" length="9" />
+                    <Field name="EmitidoExterior" length="4" />
+                    <Field name="NumeroTerminal" length="8" />                    
+                    <Field name="IdentificadorTaxaEmbarque" value="001" length="2" />
+                    <Field name="CodigoPedido" length="20" />
+                    <Field name="HoraTransacao" length="6" />
+                    <Field name="NumeroUnicoTransacao" length="29" />                    
+                    <Field name="IndicadorCieloPromocao" length="1" />
+                    <Field name="UsoCielo" length="32" />
+                </GroupOfFields>
+            </Record>
+            
+            <!--TRAILLER-->
+            <Record name="Trailler">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="9" length="1" position="1" />
+                    <Field name="TotalDeRegistro" length="249" />
+                </GroupOfFields>
+            </Record>
+        </GroupOfRecords>
+    </FlatFile>
+
+</txg:Texgit>

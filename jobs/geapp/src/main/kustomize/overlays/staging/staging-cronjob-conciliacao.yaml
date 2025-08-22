@@ -1,0 +1,6 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cr5-jobs-job
+spec:
+  schedule: "0 22 29 2 1"

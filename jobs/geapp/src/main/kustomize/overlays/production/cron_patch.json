@@ -1,0 +1,56 @@
+[
+    {
+      "op": "add",
+      "path": "/spec/jobTemplate/spec/template/spec/volumes/-1",
+      "value": {
+        "name": "cr5-arquivos",
+        "persistentVolumeClaim": {
+          "claimName": "cr5-arquivos"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "path": "/spec/jobTemplate/spec/template/spec/volumes/-1",
+      "value": {
+        "name": "cr5-cielo",
+        "persistentVolumeClaim": {
+          "claimName": "cr5-cielo"
+        }
+      }
+    },  
+    {
+      "op": "add",
+      "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-1",
+      "value": {
+        "mountPath": "/dados/cr5-arquivos",
+        "name": "cr5-arquivos"
+      }
+    },
+    {
+      "op": "add",
+      "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-1",
+      "value": {
+        "mountPath": "/dados/cr5_cielo",
+        "name": "cr5-cielo"
+      }
+    },
+  
+    {
+      "op": "add",
+      "path": "/spec/jobTemplate/spec/template/spec/tolerations",
+      "value": [
+        {
+          "key": "appGroup",
+          "value": "cr5",
+          "effect": "PreferNoSchedule"
+        },
+        {
+          "key": "appGroup",
+          "value": "cr5",
+          "effect": "NoSchedule"
+        }
+      ]
+    }
+  ]
+  
