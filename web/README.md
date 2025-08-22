@@ -1,4 +1,4 @@
-# cr5-web-v2
+# Web
 
 ## Projeto Frontend
 

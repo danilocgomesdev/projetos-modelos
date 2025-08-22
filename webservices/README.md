@@ -1,8 +1,8 @@
-# CR5-Webservices-v2
+# Webservices
 
-Projeto criado como a nova versão modernizada do cr5-webservices.
+Projeto criado como a nova versão modernizada do webservices.
 
-Feito para ser consumido pelo novo front-end do CR5 (cr5-web-v2) através do auth-middleware e por outros serviços
+Feito para ser consumido pelo novo front-end do (web-v2) através do auth-middleware e por outros serviços
 internos.
 
 Somente é aceita autenticação por meio do KeyCloak usando JWTs enviados no header `Authorization` como `Bearer ...`.
@@ -13,7 +13,7 @@ Veja também a classe `RequestFilters` e anotação `@PermissaoNecessaria`
 
 Feito em Java 21 e Quarkus 3.
 
-Ver também https://docs.fieg.com.br/financeiro/cr5-v2/plano_de_migracao
+Ver também https://docs.fieg.com.br/financeiro/v2/plano_de_migracao
 
 ## Arquitetura
 
@@ -59,7 +59,7 @@ diferenças/transformações necessárias.
 De preferência injetar em clients ou controllers, mas podem ser injetados em services também.
 
 Fique atento ao mapear propriedades Lazy de entidade, se certifique o mapper será executado num contexto que permita a
-busca ou carregue-as manualmente antes de mapear. 
+busca ou carregue-as manualmente antes de mapear.
 
 ### Sobre models
 
@@ -75,7 +75,7 @@ Você pode pré-buscar entidades Lazy usando `join fetch` no HQL.
 ### Sobre repositories
 
 NUNCA injetar um service, client ou mesmo outro repository num repository, fazer isso quebra a hierarquia de
-resposabilidades e tende a criar dependências circulares. Faça a lógica que precisa de classes de outras entidades 
+resposabilidades e tende a criar dependências circulares. Faça a lógica que precisa de classes de outras entidades
 dentro de um service, tomando cuidado para não criar dependências circulares.
 
 As classes concretas dos repositórios devem implementar `PanacheRepositoryBase<T, K>`, dê preferência aos seus métodos
@@ -168,12 +168,10 @@ Buscar nomear as classes como `UtilQualquerCoisa` (Util no início) para facilit
   (adicionar dias, calcular diferenças, ...) e seu comportamento com fusos horários. Sempre usar no lugar `LocalDate`
   quando não importar o horário e `LocalDateTime` quando importar;
 
-
 - Toda saída de datas é feito no formato de Unix Timestamp, que, por padrão, sempre se refere ao fuso horário UTC. Isso
   é tratado na classe `SerializacaoDeDataTimestamp`. Já para a entrada de dados, pode ser no formato Unix Timestamp ou
-  ISO_LOCAL_DATE(_TIME) como "2023-08-01" ou "2023-08-01T08:33:36.937", nesse caso considremos que as datas já estão no
+  ISO_LOCAL_DATE(\_TIME) como "2023-08-01" ou "2023-08-01T08:33:36.937", nesse caso considremos que as datas já estão no
   fuso do servidor (-3);
-
 
 - Sempre declarar uma interface pública para Services, Repositories e afins e sua implementação deve ser package-private
   (sem modificador de visibilidade). Isso é feito para evitar que a implementação seja injetada diretamente e suas
@@ -190,14 +188,12 @@ Buscar nomear as classes como `UtilQualquerCoisa` (Util no início) para facilit
   preferir retornar `Optional<Classe>` no lugar de retornar null ou lançar exceção. O propósito disso é deixar a decisão
   de usar null, um valor padrão ou lançar exceção explícita para quem for chamar a função;
 
-
 - Caso queria obter o id do operador ou da pessoa que fez a requisição, para gravar num campo id_operador_alteração ou
   similar, injetar a classe `RequestInfoHolder` NO CONTROLLER (pois é necessário um contexto de requisição) e usar os
   métodos `getIdPessoaOu`, `getIdOperadorOu`, `getIdPessoa`, `getIdOperador`, etc para obter essas informações. Note que
   essas informações só estaram presentes se a requisição vier do auth-middleware, e, é necessário serem
   informados em algum outro parâmetro da requisição para que serviços possam usar o endpoint, a menos que o endpoint
   tenha propósito de ser usado apenas pelo front, sempre dando prioridade à informação do `RequestInfoHolder`;
-
 
 - Anotar métodos claros que são muito utilizados
   com `@CacheResultcacheName = "cr5WebservicesV2-{nomeDaClasse}-{nomeDoMetodo}-cache")`. Não usamos o cache pelo Redis
@@ -219,13 +215,13 @@ Execute os seguintes comandos:
 
 Compile o projeto:
 
-``` shell
+```shell
 mvnw -T 1C package --batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dverify=false -Pgeapp -DskipTests -Dquarkus.package.type=fast-jar -Dquarkus.profile=devspace -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
 ```
 
 Faça o Build a partir dos pacotes locais:
 
-``` shell
+```shell
 devspace run local
 ```
 
@@ -233,6 +229,6 @@ devspace run local
 
 O build dos pacotes e a compilação da imagem Docker é realizado completamente no servidor Devspace.
 
-``` shell
+```shell
 devspace run deploy-dev
-```  
+```
